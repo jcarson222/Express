@@ -1,40 +1,40 @@
+const { request } = require("express");
 const express = require("express");
 const app = express();
-const { products } = require("./data");
+let { people } = require("./data");
 
-app.get("/", (req, res) => {
-  res.send('<h1>Home Page</h1><a href="/api/products">products</a>');
+//static assets
+app.use(express.static("./methods-public"));
+
+// parse form (html <form action="/login" method="POST">) data
+app.use(express.urlencoded({ extended: false }));
+// ^^^ This gives us access to the form <input> values
+
+// parse json
+app.use(express.json());
+
+app.get("/api/people", (req, res) => {
+  res.status(200).json({ success: true, data: people });
 });
 
-app.get("/api/products", (req, res) => {
-  const newProducts = products.map((product) => {
-    const { id, name, image } = product;
-    return { id, name, image };
-  });
-
-  res.json(newProducts);
+app.post("/api/people", (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res
+      .status(400)
+      .json({ success: false, msg: "please provide name value" });
+  }
+  res.status(201).json({ success: true, person: name });
 });
 
-app.get("/api/products/:productID", (req, res) => {
-  // keep in mind, ':productID' (also, can be named whatever) will return a string.
-  // will need to convert to a number since our product id's are numbers.
-  //console.log(req.params);
-  // 'params' is whatever you type behind the ':'
-
-  const { productID } = req.params;
-  //console.log({ productID });
-  // ^^^ variable wrapped in {} becasue req is an object
-  // ^^^ 'req.params' = { productID: string}
-
-  const singleProduct = products.find(
-    (product) => product.id === Number(productID)
-    // ^^^ convert product_id to a number
-  );
-
-  //console.log(singleProduct);
-  return res.json(singleProduct);
+app.post("/login", (req, res) => {
+  const { name } = req.body;
+  if (name) {
+    return res.status(200).send(`Welcome ${name}`);
+  }
+  res.status(401).send("Please proveide credentials");
 });
 
 app.listen(3000, () => {
-  console.log("Server listening on port: 3000....");
+  console.log("Server listening on port 3000...");
 });
