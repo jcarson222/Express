@@ -1,40 +1,29 @@
-const { request } = require("express");
 const express = require("express");
 const app = express();
-let { people } = require("./data");
+
+const people = require("./routes/people");
+const auth = require("./routes/auth");
 
 //static assets
 app.use(express.static("./methods-public"));
+// ^^^ ONLY WHEN TESTING THROUGH A FRONT END (not postman)
 
 // parse form (html <form action="/login" method="POST">) data
 app.use(express.urlencoded({ extended: false }));
 // ^^^ This gives us access to the form <input> values
+// ^^^ ONLY WHEN TESTING THROUGH A FRONT END (not postman)
 
 // parse json
 app.use(express.json());
 
-app.get("/api/people", (req, res) => {
-  res.status(200).json({ success: true, data: people });
-});
+// people routes
+app.use("/api/people", people);
 
-app.post("/api/people", (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res
-      .status(400)
-      .json({ success: false, msg: "please provide name value" });
-  }
-  res.status(201).json({ success: true, person: name });
-});
+// authorize routes
+app.use("/login", auth);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.post("/login", (req, res) => {
-  const { name } = req.body;
-  if (name) {
-    return res.status(200).send(`Welcome ${name}`);
-  }
-  res.status(401).send("Please proveide credentials");
-});
-
+// SERVER LISTEN
 app.listen(3000, () => {
   console.log("Server listening on port 3000...");
 });
